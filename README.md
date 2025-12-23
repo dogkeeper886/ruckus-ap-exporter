@@ -6,8 +6,9 @@ Tested with Ruckus R760 running firmware 7.0.0.300.
 
 ## Components
 
-- `docker-compose.yml` - SNMP Exporter container
+- `docker-compose.yml` - SNMP Exporter and Prometheus containers
 - `snmp.yml` - Ruckus-specific SNMP OID configuration
+- `prometheus.yml` - Prometheus scrape configuration
 - `targets.yml.example` - AP target list template
 - `ruckus-ap-dashboard.json` - Grafana dashboard
 
@@ -20,49 +21,27 @@ cp targets.yml.example targets.yml
 # Edit targets.yml and add your AP IP addresses
 ```
 
-### 2. Start the SNMP Exporter
+### 2. Start the Stack
 
 ```bash
 docker compose up -d
 ```
 
-### 3. Configure Prometheus
+This starts both the SNMP Exporter and a dedicated Prometheus instance.
 
-Copy `targets.yml` to your monitoring folder:
-```bash
-cp targets.yml /path/to/monitoring/ruckus-targets.yml
-```
+### 3. Add Prometheus Data Source in Grafana
 
-Add to `prometheus.yml`:
-```yaml
-  - job_name: 'ruckus-ap'
-    scrape_interval: 30s
-    scrape_timeout: 20s
-    file_sd_configs:
-      - files:
-          - /etc/prometheus/ruckus-targets.yml
-        refresh_interval: 30s
-    metrics_path: /snmp
-    params:
-      module: [ruckus]
-      auth: [public_v2]
-    relabel_configs:
-      - source_labels: [__address__]
-        target_label: __param_target
-      - source_labels: [__param_target]
-        target_label: instance
-      - target_label: __address__
-        replacement: ruckus-snmp-exporter:9116
-```
-
-Mount the targets file in Prometheus container and restart.
+1. Open Grafana (e.g., http://localhost:13000)
+2. Go to Configuration → Data Sources → Add data source
+3. Select **Prometheus**
+4. Set URL to: `http://ruckus-prometheus:9090`
+5. Click **Save & Test**
 
 ### 4. Import Dashboard
 
-1. Open Grafana
-2. Go to Dashboards → Import
-3. Upload `ruckus-ap-dashboard.json`
-4. Select your Prometheus datasource
+1. Go to Dashboards → Import
+2. Upload `ruckus-ap-dashboard.json`
+3. Select the Ruckus Prometheus data source you just added
 
 ## Adding APs
 
@@ -75,7 +54,7 @@ Edit `targets.yml`:
     job: ruckus-ap
 ```
 
-Then copy to monitoring folder and Prometheus will pick up changes automatically.
+Prometheus will automatically pick up changes within 30 seconds.
 
 ## Metrics Available
 
