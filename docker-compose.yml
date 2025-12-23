@@ -9,8 +9,6 @@ services:
       - ./snmp.yml:/etc/snmp_exporter/snmp.yml:ro
     environment:
       - TZ=Asia/Taipei
-    networks:
-      - monitoring
 
   prometheus:
     image: prom/prometheus:latest
@@ -29,12 +27,5 @@ services:
       - "19091:9090"
     environment:
       - TZ=Asia/Taipei
-    networks:
-      - monitoring
     depends_on:
       - snmp-exporter
-
-networks:
-  monitoring:
-    external: true
-    name: monitoring_default
