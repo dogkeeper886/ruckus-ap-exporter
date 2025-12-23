@@ -1,0 +1,10 @@
+# Target configuration (contains real IPs)
+targets.yml
+
+# Ruckus MIB files (proprietary)
+*.mib
+*.zip
+Ruckus_AP_*_Mib*/
+
+# Docker volumes
+volume/

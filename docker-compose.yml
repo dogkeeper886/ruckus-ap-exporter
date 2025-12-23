@@ -1,0 +1,18 @@
+services:
+  snmp-exporter:
+    image: prom/snmp-exporter:latest
+    container_name: ruckus-snmp-exporter
+    restart: unless-stopped
+    ports:
+      - "19116:9116"
+    volumes:
+      - ./snmp.yml:/etc/snmp_exporter/snmp.yml:ro
+    environment:
+      - TZ=Asia/Taipei
+    networks:
+      - monitoring
+
+networks:
+  monitoring:
+    external: true
+    name: monitoring_default

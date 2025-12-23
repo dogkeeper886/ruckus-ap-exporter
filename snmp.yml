@@ -1,0 +1,142 @@
+# SNMP Exporter configuration for Ruckus APs
+# Tested with R760 running firmware 7.0.0.300
+
+auths:
+  public_v2:
+    community: public
+    security_level: noAuthNoPriv
+    auth_protocol: MD5
+    priv_protocol: DES
+    version: 2
+
+modules:
+  ruckus:
+    walk:
+      # System MIB scalars
+      - 1.3.6.1.2.1.1.1.0   # sysDescr
+      - 1.3.6.1.2.1.1.3.0   # sysUpTime
+      - 1.3.6.1.2.1.1.5.0   # sysName
+      - 1.3.6.1.2.1.2.1.0   # ifNumber
+
+      # Ruckus AP Info scalars
+      - 1.3.6.1.4.1.25053.1.1.2.1.1.1.1.0   # AP Model (R760)
+      - 1.3.6.1.4.1.25053.1.1.2.1.1.1.2.0   # Serial Number
+
+      # Ruckus System scalars
+      - 1.3.6.1.4.1.25053.1.1.11.1.1.1.1.0   # CPU
+      - 1.3.6.1.4.1.25053.1.1.11.1.1.1.2.0   # Memory
+
+      # Interface 64-bit counters
+      - 1.3.6.1.2.1.31.1.1.1.6    # ifHCInOctets
+      - 1.3.6.1.2.1.31.1.1.1.10   # ifHCOutOctets
+
+      # WLAN Stats Table - specific columns
+      - 1.3.6.1.4.1.25053.1.1.6.1.1.1.4.1.1    # SSID Name
+      - 1.3.6.1.4.1.25053.1.1.6.1.1.1.4.1.3    # NumSta (clients per WLAN)
+      - 1.3.6.1.4.1.25053.1.1.6.1.1.1.4.1.4    # RxBytes per WLAN
+      - 1.3.6.1.4.1.25053.1.1.6.1.1.1.4.1.5    # TxBytes per WLAN
+
+    metrics:
+      - name: sysUpTime
+        oid: 1.3.6.1.2.1.1.3
+        type: gauge
+        help: System uptime in hundredths of seconds
+
+      - name: sysDescr
+        oid: 1.3.6.1.2.1.1.1
+        type: DisplayString
+        help: System description
+
+      - name: sysName
+        oid: 1.3.6.1.2.1.1.5
+        type: DisplayString
+        help: System name
+
+      - name: ifNumber
+        oid: 1.3.6.1.2.1.2.1
+        type: gauge
+        help: Number of interfaces
+
+      - name: ruckusAPModel
+        oid: 1.3.6.1.4.1.25053.1.1.2.1.1.1.1
+        type: DisplayString
+        help: AP model name
+
+      - name: ruckusAPSerialNumber
+        oid: 1.3.6.1.4.1.25053.1.1.2.1.1.1.2
+        type: DisplayString
+        help: AP serial number
+
+      - name: ruckusSystemCPUUtil
+        oid: 1.3.6.1.4.1.25053.1.1.11.1.1.1.1
+        type: gauge
+        help: CPU utilization percentage
+
+      - name: ruckusSystemMemoryUtil
+        oid: 1.3.6.1.4.1.25053.1.1.11.1.1.1.2
+        type: gauge
+        help: Memory utilization percentage
+
+      - name: ifHCInOctets
+        oid: 1.3.6.1.2.1.31.1.1.1.6
+        type: counter
+        help: Total octets received
+        indexes:
+          - labelname: ifIndex
+            type: Integer
+
+      - name: ifHCOutOctets
+        oid: 1.3.6.1.2.1.31.1.1.1.10
+        type: counter
+        help: Total octets transmitted
+        indexes:
+          - labelname: ifIndex
+            type: Integer
+
+      # WLAN Stats - SSID name (for labels)
+      - name: ruckusWLANSSID
+        oid: 1.3.6.1.4.1.25053.1.1.6.1.1.1.4.1.1
+        type: DisplayString
+        help: WLAN SSID name
+        indexes:
+          - labelname: wlanIndex
+            type: Integer
+
+      # WLAN Stats - clients per WLAN
+      - name: ruckusWLANNumSta
+        oid: 1.3.6.1.4.1.25053.1.1.6.1.1.1.4.1.3
+        type: gauge
+        help: Number of associated stations per WLAN
+        indexes:
+          - labelname: wlanIndex
+            type: Integer
+
+      # WLAN Stats - RX bytes per WLAN
+      - name: ruckusWLANRxBytes
+        oid: 1.3.6.1.4.1.25053.1.1.6.1.1.1.4.1.4
+        type: counter
+        help: Received bytes per WLAN
+        indexes:
+          - labelname: wlanIndex
+            type: Integer
+
+      # WLAN Stats - TX bytes per WLAN
+      - name: ruckusWLANTxBytes
+        oid: 1.3.6.1.4.1.25053.1.1.6.1.1.1.4.1.5
+        type: counter
+        help: Transmitted bytes per WLAN
+        indexes:
+          - labelname: wlanIndex
+            type: Integer
+
+  if_mib:
+    walk:
+      - 1.3.6.1.2.1.1.3.0
+      - 1.3.6.1.2.1.1.5.0
+    metrics:
+      - name: sysUpTime
+        oid: 1.3.6.1.2.1.1.3
+        type: gauge
+      - name: sysName
+        oid: 1.3.6.1.2.1.1.5
+        type: DisplayString
